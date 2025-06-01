@@ -11,3 +11,4 @@ tf-env/
 *.pyz
 *.pywz
 *.pyzw
+venv/

@@ -6,7 +6,7 @@ from PIL import Image
 import pandas as pd
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Face Encoder Demo", layout="wide")
+st.set_page_config(page_title="Face Encoder", layout="wide")
 
 st.title("Face Encoder - CNN Feature Extraction")
 st.write("Upload an image to extract face embeddings using CNN.")
