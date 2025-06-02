@@ -47,7 +47,7 @@ class FaceEncoder:
         return face_img
     
     def detect_face(self, image):
-        """Detect face in the image using MTCNN"""
+        """Detect faces in the image using MTCNN"""
         # Convert image to RGB if it's BGR
         if len(image.shape) == 3 and image.shape[2] == 3:
             rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -60,27 +60,32 @@ class FaceEncoder:
         if not faces:
             return None
             
-        # Get the first face
-        face = faces[0]
-        x, y, width, height = face['box']
-        
-        # Extract face region
-        face_img = image[y:y+height, x:x+width]
-        return face_img
+        # Extract all face regions
+        face_images = []
+        for face in faces:
+            x, y, width, height = face['box']
+            face_img = image[y:y+height, x:x+width]
+            face_images.append(face_img)
+            
+        return face_images
     
     def encode_face(self, image):
-        """Extract face embedding from an image"""
-        # Detect face
-        face_img = self.detect_face(image)
-        if face_img is None:
+        """Extract face embeddings from an image for all detected faces"""
+        # Detect faces
+        face_images = self.detect_face(image)
+        if face_images is None:
             return None
             
-        # Preprocess face
-        processed_face = self.preprocess_face(face_img)
-        
-        # Get face embedding
-        embedding = self.model.predict(processed_face)
-        return embedding[0]  # Return the first (and only) embedding
+        # Process all faces and get embeddings
+        embeddings = []
+        for face_img in face_images:
+            # Preprocess face
+            processed_face = self.preprocess_face(face_img)
+            # Get face embedding
+            embedding = self.model.predict(processed_face)
+            embeddings.append(embedding[0])  # Add the embedding to list
+            
+        return embeddings
     
     def compare_faces(self, embedding1, embedding2, threshold=0.6):
         """Compare two face embeddings and return similarity score"""
@@ -92,10 +97,12 @@ if __name__ == "__main__":
     # Initialize face encoder
     encoder = FaceEncoder()
     
-    # Example: Load and encode a face
+    # Example: Load and encode faces
     image = cv2.imread("image.jpg")
     if image is not None:
-        embedding = encoder.encode_face(image)
-        if embedding is not None:
-            print("Face embedding shape:", embedding.shape)
-            print("Face embedding:", embedding) 
+        embeddings = encoder.encode_face(image)
+        if embeddings is not None:
+            print(f"Number of faces detected: {len(embeddings)}")
+            for i, embedding in enumerate(embeddings):
+                print(f"Face {i+1} embedding shape:", embedding.shape)
+                print(f"Face {i+1} embedding:", embedding) 
